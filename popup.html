@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Settings</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"], input[type="checkbox"] {
+            margin-left: 10px;
+        }
+
+        #saveBtn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        #saveBtn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h2>Extension Settings</h2>
+    <form id="settingsForm">
+        <label>
+            Active Border:
+            <input type="text" id="activeBorder" value="0px solid rgb(0, 140, 256)">
+        </label>
+        <label>
+            Active Background Color:
+            <input type="text" id="activeBackgroundColor" value="rgba(0, 0, 0, 0.15)">
+        </label>
+        <label>
+            Invert Scroll:
+            <input type="checkbox" id="invertScroll" checked>
+        </label>
+        <label>
+            Display ToolTip:
+            <input type="checkbox" id="displayToolTip" checked>
+        </label>
+        <label>
+            Tool Active:
+            <input type="checkbox" id="toolActive" checked>
+        </label>
+        <button type="button" id="saveBtn">Save Settings</button>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize input fields with default values
+            document.getElementById('activeBorder').value = localStorage.getItem('activeBorder') || "0px solid rgb(0, 140, 256)";
+            document.getElementById('activeBackgroundColor').value = localStorage.getItem('activeBackgroundColor') || "rgba(0, 0, 0, 0.15)";
+            document.getElementById('invertScroll').checked = JSON.parse(localStorage.getItem('invertScroll')) || false;
+            document.getElementById('displayToolTip').checked = JSON.parse(localStorage.getItem('displayToolTip')) || true;
+            document.getElementById('toolActive').checked = JSON.parse(localStorage.getItem('toolActive')) || true;
+
+            // Save settings when save button is clicked
+            document.getElementById('saveBtn').addEventListener('click', function() {
+                localStorage.setItem('activeBorder', document.getElementById('activeBorder').value);
+                localStorage.setItem('activeBackgroundColor', document.getElementById('activeBackgroundColor').value);
+                localStorage.setItem('invertScroll', document.getElementById('invertScroll').checked);
+                localStorage.setItem('displayToolTip', document.getElementById('displayToolTip').checked);
+                localStorage.setItem('toolActive', document.getElementById('toolActive').checked);
+
+                alert('Settings saved successfully!');
+            });
+        });
+    </script>
+</body>
+</html>
