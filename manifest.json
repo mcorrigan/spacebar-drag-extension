@@ -1,5 +1,5 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "Spacebar Drag",
     "version": "1.0",
     "description": "Use spacebar to scroll the window around with precision.",
@@ -10,7 +10,7 @@
         "js": ["content.js"]
       }
     ],
-    "browser_action": {
+    "action": {
       "default_popup": "popup.html",
       "default_icon": "icon.png"
     },
