@@ -79,6 +79,10 @@ chrome.storage.sync.get("options", (data) => {
   options.activeBackgroundColor = options.activeBackgroundColor || "#000000";
   options.activeBackgroundOpacity = options.activeBackgroundOpacity || 0.15;
   options.activatedMouseButton = options.activatedMouseButton || 0; // 0 = left mouse button
+  options.velocityFriction = options.velocityFriction || 0.9;
+  if (options.displayToolTip === undefined) {
+    options.displayToolTip = true;
+  }
 
   // sync anything we may have set defaults for
   chrome.storage.sync.set({ options });
