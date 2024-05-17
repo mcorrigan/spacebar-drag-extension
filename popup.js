@@ -75,11 +75,19 @@ chrome.storage.sync.get("options", (data) => {
   // get any data currently stored for this extension
   Object.assign(options, data.options);
   options.activeBorder = options.activeBorder || "#008CFF";
-  options.activeBorderThickness = options.activeBorderThickness || 4;
+  if (options.activeBorderThickness === undefined) {
+    options.activeBorderThickness = 4;
+  }
   options.activeBackgroundColor = options.activeBackgroundColor || "#000000";
-  options.activeBackgroundOpacity = options.activeBackgroundOpacity || 0.15;
-  options.activatedMouseButton = options.activatedMouseButton || 0; // 0 = left mouse button
-  options.velocityFriction = options.velocityFriction || 0.9;
+  if (options.activeBackgroundOpacity === undefined) {
+    options.activeBackgroundOpacity = 0.15;
+  }
+  if (options.activatedMouseButton === undefined) {
+    options.activatedMouseButton = 0; // 0 = left mouse button
+  }
+  if (options.velocityFriction === undefined) {
+    options.velocityFriction = 0.9;
+  }
   if (options.displayToolTip === undefined) {
     options.displayToolTip = true;
   }
