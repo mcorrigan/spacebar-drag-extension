@@ -7,7 +7,7 @@ optionsForm.activeBorder.addEventListener("change", (event) => {
 });
 
 optionsForm.activeBorderThickness.addEventListener("change", (event) => {
-  options.activeBorderThickness = event.target.value;
+  options.activeBorderThickness = parseInt(event.target.value);
   chrome.storage.sync.set({ options });
 });
 
@@ -22,7 +22,7 @@ optionsForm.activeBackgroundColor.addEventListener("change", (event) => {
 });
 
 optionsForm.activeBackgroundOpacity.addEventListener("change", (event) => {
-  options.activeBackgroundOpacity = event.target.value;
+  options.activeBackgroundOpacity = parseFloat(event.target.value);
   chrome.storage.sync.set({ options });
 });
 
@@ -41,7 +41,32 @@ optionsForm.displayToolTip.addEventListener("change", (event) => {
   chrome.storage.sync.set({ options });
 });
 
-optionsForm.saveBtn.addEventListener("click", () => {
+// add useVelocities checkbox
+optionsForm.useVelocities.addEventListener("change", (event) => {
+  options.useVelocities = event.target.checked;
+  optionsForm.velocityFriction.disabled = !event.target.checked;
+  chrome.storage.sync.set({ options });
+});
+
+// add velocityFriction input
+optionsForm.velocityFriction.addEventListener("change", (event) => {
+  options.velocityFriction = parseFloat(event.target.value);
+  chrome.storage.sync.set({ options });
+});
+
+optionsForm.velocityFriction.addEventListener("input", (event) => {
+  document.getElementById("velocityFrictionValue").textContent = parseFloat(
+    event.target.value
+  ).toFixed(2);
+});
+
+// add activatedMouseButton input
+optionsForm.activatedMouseButton.addEventListener("change", (event) => {
+  options.activatedMouseButton = parseInt(event.target.value);
+  chrome.storage.sync.set({ options });
+});
+
+optionsForm.closeBtn.addEventListener("click", () => {
   window.close();
 });
 
@@ -50,11 +75,13 @@ chrome.storage.sync.get("options", (data) => {
   // get any data currently stored for this extension
   Object.assign(options, data.options);
   options.activeBorder = options.activeBorder || "#008CFF";
-  options.activeBorderThickness = options.activeBorderThickness || 2;
+  options.activeBorderThickness = options.activeBorderThickness || 4;
   options.activeBackgroundColor = options.activeBackgroundColor || "#000000";
   options.activeBackgroundOpacity = options.activeBackgroundOpacity || 0.15;
-  options.invertScroll = options.invertScroll;
-  options.displayToolTip = options.displayToolTip;
+  options.activatedMouseButton = options.activatedMouseButton || 0; // 0 = left mouse button
+
+  // sync anything we may have set defaults for
+  chrome.storage.sync.set({ options });
 
   optionsForm.activeBorder.value = options.activeBorder;
   optionsForm.activeBorderThickness.value = options.activeBorderThickness;
@@ -62,13 +89,20 @@ chrome.storage.sync.get("options", (data) => {
   optionsForm.activeBackgroundOpacity.value = options.activeBackgroundOpacity;
   optionsForm.invertScroll.checked = Boolean(options.invertScroll);
   optionsForm.displayToolTip.checked = Boolean(options.displayToolTip);
+  optionsForm.useVelocities.checked = Boolean(options.useVelocities);
+  optionsForm.velocityFriction.value = options.velocityFriction;
+  optionsForm.activatedMouseButton.value = options.activatedMouseButton;
 
-  // sync anything we may have set
-  chrome.storage.sync.set({ options });
+  // set field to disabled if useVelocities is false
+  optionsForm.velocityFriction.disabled = !options.useVelocities;
 
   document.getElementById("activeBackgroundOpacityValue").textContent =
     parseFloat(options.activeBackgroundOpacity).toFixed(2);
 
   document.getElementById("activeBorderThicknessValue").textContent =
     options.activeBorderThickness;
+
+  document.getElementById("velocityFrictionValue").textContent = parseFloat(
+    options.velocityFriction
+  ).toFixed(2);
 });

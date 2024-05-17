@@ -41,7 +41,7 @@
             text-align: right;
         }
 
-        #saveBtn {
+        #closeBtn {
             margin-top: 20px;
             padding: 10px 20px;
             background-color: #494949;
@@ -50,7 +50,7 @@
             cursor: pointer;
         }
 
-        #saveBtn:hover {
+        #closeBtn:hover {
             background-color: #0056b3;
         }
     </style>
@@ -77,6 +77,9 @@
             <input type="range" id="activeBackgroundOpacity" min="0" max="1" step="0.01" value="0.15"> 
             <span id="activeBackgroundOpacityValue" class="num-display">0.15</span>
         </div>
+
+        <hr style="width: 100%; border: none; border-top: 1px solid rgb(58, 58, 58);">
+
         <label>
             Invert Scroll Direction:
             <input type="checkbox" id="invertScroll" checked>
@@ -86,7 +89,31 @@
             <input type="checkbox" id="displayToolTip" checked>
         </label>
 
-        <button id="saveBtn">Close</button>
+        <hr style="width: 100%; border: none; border-top: 1px solid rgb(58, 58, 58);">
+
+        <label>
+            Velocity Movements:
+            <input type="checkbox" id="useVelocities">
+        </label>
+
+        <label>
+            Friction:
+            <input disabled type="range" id="velocityFriction" min="0" max="1" step="0.05" value="0.9">
+            <span id="velocityFrictionValue" class="num-display">0.9</span>
+        </label>
+
+        <hr style="width: 100%; border: none; border-top: 1px solid rgb(58, 58, 58);">
+
+        <div class="label">
+            Mouse Button:
+            <select id="activatedMouseButton">
+                <option value="0" selected>Left</option>
+                <option value="1">Middle</option>
+                <option value="2">Right</option>
+            </select>
+        </div>
+
+        <button id="closeBtn">Close</button>
     </form>
 
     <script src="popup.js"></script>

@@ -1,4 +1,5 @@
 (function () {
+  const SPACEBAR_KEY = 32;
   const MOUSE_LEFT_BTN = 0;
   const MOUSE_MIDDLE_BTN = 1;
   const MOUSE_RIGHT_BTN = 2;
@@ -11,34 +12,44 @@
   let invertScroll = false;
   let displayToolTip = true;
   let activatedMouseButton = MOUSE_LEFT_BTN;
+  let useVelocities = false;
+  let friction = 0.9;
 
+  // listen for changes to the options
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === "sync" && changes.options?.newValue) {
-      activeBorder = changes.options.newValue.activeBorder;
-      activeBorderThickness = changes.options.newValue.activeBorderThickness;
-      activeBackgroundColor = changes.options.newValue.activeBackgroundColor;
-      activeBackgroundOpacity =
-        changes.options.newValue.activeBackgroundOpacity;
-      invertScroll = changes.options.newValue.invertScroll;
-      displayToolTip = changes.options.newValue.displayToolTip;
+      updateVariablesFromData(changes.options.newValue);
     }
   });
 
-  chrome.storage.sync.get("options", (data) => {
-    // get any data currently stored for this extension
-    activeBorder = data.options.activeBorder;
-    activeBorderThickness = data.options.activeBorderThickness;
-    activeBackgroundColor = data.options.activeBackgroundColor;
-    activeBackgroundOpacity = data.options.activeBackgroundOpacity;
-    invertScroll = data.options.invertScroll;
-    displayToolTip = data.options.displayToolTip;
-  });
+  // default load data
+  chrome.storage.sync.get("options", (data) =>
+    updateVariablesFromData(data.options)
+  );
+
+  function updateVariablesFromData(data) {
+    console.log(data);
+    activeBorder = data.activeBorder;
+    activeBorderThickness = data.activeBorderThickness;
+    activeBackgroundColor = data.activeBackgroundColor;
+    activeBackgroundOpacity = data.activeBackgroundOpacity;
+    invertScroll = data.invertScroll;
+    displayToolTip = data.displayToolTip;
+    activatedMouseButton = data.activatedMouseButton;
+    useVelocities = data.useVelocities;
+    friction = Math.min(data.velocityFriction, 0.99); // 1 means never stops
+    if (!useVelocities) {
+      velocityX = 0;
+      velocityY = 0;
+    }
+  }
 
   // internals
   let spaceBarActive = false;
   let dragScrollActive = false;
   let userSelectDefault = document.body.style.userSelect; // we have to prevent select or dragging will select stuff
-  const SPACEBAR = 32;
+  let velocityX = 0;
+  let velocityY = 0;
 
   const overlay = document.createElement("div");
   overlay.style.cssText = `
@@ -71,7 +82,6 @@
     font-size: 22px;
     display: block;
   `;
-  hint.textContent = "Click and drag 🖱️ to pan";
 
   overlay.appendChild(hint);
   document.body.appendChild(overlay);
@@ -79,18 +89,29 @@
   function loadSettings() {
     // set do these in bulk to avoid reflow
     overlay.style.border = `${activeBorderThickness}px solid ${activeBorder}`;
-    overlay.style.backgroundColor = activeBackgroundColor;
-    overlay.style.backgroundColor = `rgba(0, 0, 0, ${activeBackgroundOpacity})`;
+    // convert hex color to rgb
+    const red = parseInt(activeBackgroundColor.slice(1, 3), 16);
+    const green = parseInt(activeBackgroundColor.slice(3, 5), 16);
+    const blue = parseInt(activeBackgroundColor.slice(5, 7), 16);
+    overlay.style.backgroundColor = `rgba(${red}, ${green}, ${blue}, ${activeBackgroundOpacity})`;
     hint.style.display = displayToolTip ? "block" : "none";
+    const button =
+      activatedMouseButton === MOUSE_LEFT_BTN
+        ? "Left"
+        : activatedMouseButton === MOUSE_MIDDLE_BTN
+        ? "Middle"
+        : "Right";
+    hint.textContent = `${button} click 🖱️ and drag to pan`;
   }
 
   function handleKeyDown(event) {
     // make sure we are not trying to type or interact with a valid element
-    if (!activeElementInputType() && event.keyCode === SPACEBAR) {
+    if (!activeElementInputType() && event.keyCode === SPACEBAR_KEY) {
       if (!spaceBarActive) {
         event.preventDefault();
 
         loadSettings();
+
         spaceBarActive = true;
         overlay.style.opacity = 1;
         overlay.style.height = "100%";
@@ -103,7 +124,7 @@
     }
   }
   function handleKeyUp(event) {
-    if (event.keyCode === SPACEBAR && !activeElementInputType()) {
+    if (event.keyCode === SPACEBAR_KEY && !activeElementInputType()) {
       spaceBarActive = false;
       overlay.style.opacity = 0;
       overlay.style.height = 0;
@@ -115,24 +136,50 @@
     if (event.button === activatedMouseButton && spaceBarActive) {
       dragScrollActive = true;
       overlay.style.cursor = "grabbing";
+      // reset the velocity if we are not using it
+      velocityX = 0;
+      velocityY = 0;
     }
   }
 
   function handleMouseUp(event) {
     if (event.button === activatedMouseButton && dragScrollActive) {
+      event.preventDefault();
       dragScrollActive = false;
       overlay.style.cursor = "grab";
+      if (useVelocities) {
+        console.log("run velocity animations");
+        slowScroll();
+      }
     }
   }
 
   function handleMouseMove(event) {
     if (dragScrollActive) {
+      velocityX = event.movementX;
+      velocityY = event.movementY;
+
       // invert the movement to scroll in the right direction
       if (!invertScroll) {
         window.scrollBy(-event.movementX, -event.movementY);
       } else {
         window.scrollBy(event.movementX, event.movementY);
       }
+    }
+  }
+
+  function slowScroll() {
+    console.log(velocityX, velocityY, friction);
+    // Gradually slow down scrolling using velocity and friction
+    if (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1) {
+      if (!invertScroll) {
+        window.scrollBy(-velocityX, -velocityY);
+      } else {
+        window.scrollBy(velocityX, velocityY);
+      }
+      velocityX *= friction;
+      velocityY *= friction;
+      requestAnimationFrame(slowScroll);
     }
   }
 
@@ -155,11 +202,28 @@
     );
   }
 
+  function handleContextMenu(event) {
+    if (spaceBarActive) {
+      event.preventDefault();
+    }
+  }
+
+  function handleMouseLeave(event) {
+    if (spaceBarActive && !dragScrollActive) {
+      spaceBarActive = false;
+      overlay.style.opacity = 0;
+      overlay.style.height = 0;
+      document.body.style.userSelect = userSelectDefault;
+    }
+  }
+
   document.addEventListener("mousedown", handleMouseDown);
   document.addEventListener("mouseup", handleMouseUp);
   document.addEventListener("mousemove", handleMouseMove);
+  //   document.addEventListener("mouseleave", handleMouseLeave);
   document.addEventListener("keydown", handleKeyDown);
   document.addEventListener("keyup", handleKeyUp);
+  document.addEventListener("contextmenu", handleContextMenu);
 
   loadSettings();
 })();
