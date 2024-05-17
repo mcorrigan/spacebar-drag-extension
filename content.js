@@ -28,7 +28,6 @@
   );
 
   function updateVariablesFromData(data) {
-    console.log(data);
     activeBorder = data.activeBorder;
     activeBorderThickness = data.activeBorderThickness;
     activeBackgroundColor = data.activeBackgroundColor;
@@ -147,10 +146,7 @@
       event.preventDefault();
       dragScrollActive = false;
       overlay.style.cursor = "grab";
-      if (useVelocities) {
-        console.log("run velocity animations");
-        slowScroll();
-      }
+      if (useVelocities) slowScroll();
     }
   }
 
@@ -169,7 +165,6 @@
   }
 
   function slowScroll() {
-    console.log(velocityX, velocityY, friction);
     // Gradually slow down scrolling using velocity and friction
     if (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1) {
       if (!invertScroll) {
