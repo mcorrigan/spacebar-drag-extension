@@ -57,7 +57,7 @@
     left: 0;
     width: 100%;
     height: 0;
-    z-index: 9999999;
+    z-index: 2147483647;
     cursor: grab;
     box-sizing: border-box;
     border: 4px solid rgb(0, 140, 256);
