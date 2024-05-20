@@ -80,6 +80,7 @@
     font-family: Arial, sans-serif;
     font-size: 22px;
     display: block;
+    pointer-events: none;
   `;
 
   overlay.appendChild(hint);
@@ -127,6 +128,7 @@
       spaceBarActive = false;
       overlay.style.opacity = 0;
       overlay.style.height = 0;
+      overlay.style.border = "none";
       document.body.style.userSelect = userSelectDefault;
     }
   }
