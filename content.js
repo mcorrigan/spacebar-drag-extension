@@ -106,7 +106,7 @@
 
   function handleKeyDown(event) {
     // make sure we are not trying to type or interact with a valid element
-    if (!activeElementInputType() && event.keyCode === SPACEBAR_KEY) {
+    if (isNonInputElement() && event.keyCode === SPACEBAR_KEY) {
       if (!spaceBarActive) {
         event.preventDefault();
 
@@ -124,7 +124,7 @@
     }
   }
   function handleKeyUp(event) {
-    if (event.keyCode === SPACEBAR_KEY && !activeElementInputType()) {
+    if (event.keyCode === SPACEBAR_KEY && isNonInputElement()) {
       spaceBarActive = false;
       overlay.style.opacity = 0;
       overlay.style.height = 0;
@@ -180,8 +180,27 @@
     }
   }
 
+  function isNonInputElement() {
+    const focusedElement = document.activeElement;
+    const generallySafeElements = [
+      "BODY", 
+      "DIV", "SPAN", "P", 
+      "H1", "H2", "H3", "H4", "H5", "H6", 
+      "UL", "OL", "LI",
+      "DL", "DT", "DD",
+      "TABLE", "TR", "TD", "TH", "TBODY", "THEAD", "TFOOT", "CAPTION", "COL", "COLGROUP",
+      "THEAD", "TFOOT", "TBODY", "TR", "TD", "TH",
+    ];
+
+    return generallySafeElements.includes(focusedElement.tagName) &&
+      focusedElement.contentEditable !== "true" &&
+      focusedElement.onclick === null;
+  }
+
   function activeElementInputType() {
     const focusedElement = document.activeElement;
+    console.log(focusedElement.tagName)
+
     const inputLikeElements = [
       "OPTION",
       "SELECT",
