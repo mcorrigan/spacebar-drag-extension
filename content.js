@@ -49,7 +49,7 @@
   let userSelectDefault = document.body.style.userSelect; // we have to prevent select or dragging will select stuff
   let velocityX = 0;
   let velocityY = 0;
-
+  
   const overlay = document.createElement("div");
   overlay.style.cssText = `
     position: fixed;
@@ -86,6 +86,25 @@
   overlay.appendChild(hint);
   document.body.appendChild(overlay);
 
+  // Create an image element to display the thumbnail
+  const pageMap = document.createElement('img');
+  pageMap.style.cssText = `
+    position: fixed;
+    top: 4px;
+    right: 4px;
+    z-index: 2147483647;
+    cursor: grab;
+    box-sizing: border-box;
+    border: 4px solid rgb(57, 57, 57);
+    background-color: rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+    height: auto;
+    width: 180px;
+    transition: opacity 0.2s;
+    opacity: 0;
+  `;
+  document.body.appendChild(pageMap);
+
   function loadSettings() {
     // set do these in bulk to avoid reflow
     overlay.style.border = `${activeBorderThickness}px solid ${activeBorder}`;
@@ -110,6 +129,8 @@
       if (!spaceBarActive) {
         event.preventDefault();
 
+        captureScreenshot();
+        pageMap.style.opacity = 1;
         loadSettings();
 
         spaceBarActive = true;
@@ -129,6 +150,9 @@
       overlay.style.opacity = 0;
       overlay.style.height = 0;
       overlay.style.border = "none";
+
+      pageMap.style.opacity = 0;
+
       document.body.style.userSelect = userSelectDefault;
     }
   }
@@ -231,6 +255,17 @@
       overlay.style.height = 0;
       document.body.style.userSelect = userSelectDefault;
     }
+  }
+
+  function captureScreenshot() {
+    // Use html2canvas to capture the body
+    html2canvas(document.body).then(canvas => {
+      // Convert the canvas to an image
+      const imgData = canvas.toDataURL('image/png');
+      pageMap.src = imgData;
+    }).catch(err => {
+      console.error('Error capturing screenshot:', err);
+    });
   }
 
   document.addEventListener("mousedown", handleMouseDown);
