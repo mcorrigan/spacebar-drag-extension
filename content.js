@@ -14,6 +14,7 @@
   let activatedMouseButton = MOUSE_LEFT_BTN;
   let useVelocities = false;
   let friction = 0.9;
+  let useNavThumbnail = true;
 
   // listen for changes to the options
   chrome.storage.onChanged.addListener((changes, area) => {
@@ -41,6 +42,20 @@
       velocityX = 0;
       velocityY = 0;
     }
+    useNavThumbnail = data.useNavThumbnail;
+    if (useNavThumbnail && pageMapImg.src === "")
+      debouncedCaptureScreenshot();
+  }
+
+  function debounce(func, delay) {
+    let timeoutId;
+    return function(...args) {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        console.log(lastAnimationTime);
+        func.apply(this, args);
+      }, delay);
+    };
   }
 
   // internals
@@ -49,6 +64,7 @@
   let userSelectDefault = document.body.style.userSelect; // we have to prevent select or dragging will select stuff
   let velocityX = 0;
   let velocityY = 0;
+  let lastAnimationTime = 0;
   
   const overlay = document.createElement("div");
   overlay.style.cssText = `
@@ -87,23 +103,94 @@
   document.body.appendChild(overlay);
 
   // Create an image element to display the thumbnail
-  const pageMap = document.createElement('img');
+  const pageMap = document.createElement('div');
   pageMap.style.cssText = `
     position: fixed;
-    top: 4px;
-    right: 4px;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: calc(100% - 180px);
     z-index: 2147483647;
-    cursor: grab;
     box-sizing: border-box;
-    border: 4px solid rgb(57, 57, 57);
-    background-color: rgba(0, 0, 0, 0.15);
-    pointer-events: none;
-    height: auto;
-    width: 180px;
+    border-left: 2px solid rgb(200, 200, 200);
+    background-color: rgb(65, 65, 65);
+    box-shadow: 0px 0px 10px 0px;
     transition: opacity 0.2s;
     opacity: 0;
   `;
+  // add hover
+  pageMap.addEventListener('dragenter', () => {
+    if (spaceBarActive)
+      pageMap.style.opacity = .25;
+  });
+  pageMap.addEventListener('dragleave', () => {
+    if (spaceBarActive)
+      pageMap.style.opacity = 1;
+  });
+  pageMap.addEventListener('mouseenter', () => {
+    if (spaceBarActive)
+      pageMap.style.opacity = .25;
+  });
+  pageMap.addEventListener('mouseleave', () => {
+    if (spaceBarActive)
+      pageMap.style.opacity = 1;
+  });
+  const pageMapImg = document.createElement('img');
+  pageMapImg.style.cssText = `
+    width: 100%;
+  `;
+  pageMap.appendChild(pageMapImg);
+  const mapOverlay = document.createElement('div');
+  mapOverlay.style.cssText = `
+    background-color: rgba(255, 255, 255, .25);
+    width: 100%;
+    height: 120px;
+    position: absolute;
+    top: 0px;
+    border: 1px solid black;
+  `;
+  pageMap.appendChild(mapOverlay);
   document.body.appendChild(pageMap);
+
+  // determine when the page has fully finished loading or window is resized - debounce these events before capturing screenshot
+  // TODO: If user is actively scrolling or typing, don't capture screenshot yet, continue to debounce screenshot capture
+  const debouncedCaptureScreenshot = debounce(captureScreenshot, 250);
+  const handleCaptureScreenshot = () => {
+    if (useNavThumbnail)
+      debouncedCaptureScreenshot();
+  };
+  window.addEventListener("load", handleCaptureScreenshot); // page fully loads
+  window.addEventListener("resize", handleCaptureScreenshot); // page resizes
+  window.addEventListener("popstate", handleCaptureScreenshot); // URL changes?
+  window.addEventListener("hashchange", handleCaptureScreenshot); // hash changes?
+  // these should only affect is a capture is already going to happen, not trigger a new capture
+  // window.addEventListener("scroll", handleCaptureScreenshot); // scroll changes
+  // window.addEventListener("keydown", handleCaptureScreenshot); // keydown changes
+  // window.addEventListener("mousemove", handleCaptureScreenshot); // mousemove changes
+
+  // listen for body scroll height or width changes indicating a dynamically loaded page
+  // Initial scroll height and width
+  let lastScrollHeight = document.body.scrollHeight;
+  let lastScrollWidth = document.body.scrollWidth;
+  // Observer callback
+  const observerCallback = () => {
+    const currentScrollHeight = document.body.scrollHeight;
+    const currentScrollWidth = document.body.scrollWidth;
+
+    if (useNavThumbnail && 
+        (currentScrollHeight !== lastScrollHeight || currentScrollWidth !== lastScrollWidth)) {
+      lastScrollHeight = currentScrollHeight;
+      lastScrollWidth = currentScrollWidth;
+      debouncedCaptureScreenshot();
+    }
+  };
+  const observer = new MutationObserver(observerCallback);
+  observer.observe(document.body, {
+    attributes: true,
+    childList: true,
+    subtree: true,
+  });
+
 
   function loadSettings() {
     // set do these in bulk to avoid reflow
@@ -129,8 +216,13 @@
       if (!spaceBarActive) {
         event.preventDefault();
 
-        captureScreenshot();
-        pageMap.style.opacity = 1;
+        if (useNavThumbnail){
+          pageMap.style.opacity = 1;
+          updateThumbnailOverlay();
+        }else{
+          pageMap.style.opacity = 0;
+        }
+
         loadSettings();
 
         spaceBarActive = true;
@@ -187,21 +279,49 @@
       } else {
         window.scrollBy(event.movementX, event.movementY);
       }
+
+      if (useNavThumbnail){
+        updateThumbnailOverlay();
+      }
     }
   }
 
   function slowScroll() {
     // Gradually slow down scrolling using velocity and friction
     if (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1) {
+      lastAnimationTime = performance.now();
       if (!invertScroll) {
         window.scrollBy(-velocityX, -velocityY);
       } else {
         window.scrollBy(velocityX, velocityY);
       }
+      updateThumbnailOverlay();
       velocityX *= friction;
       velocityY *= friction;
       requestAnimationFrame(slowScroll);
     }
+  }
+
+  function updateThumbnailOverlay() {
+
+    // TODO: the constaints should be on the image height, not the window height
+
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    const pageWidth = document.body.scrollWidth;
+    const pageHeight = document.body.scrollHeight;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const x = (scrollX / pageWidth) * 100;
+    const y = (scrollY / pageHeight) * 100;
+    const width = (viewportWidth / pageWidth) * 100;
+    const height = (viewportHeight / pageHeight) * 100;
+
+    mapOverlay.style.left = `${x}%`;
+    mapOverlay.style.top = `${y}%`;
+    mapOverlay.style.width = `${width}%`;
+    mapOverlay.style.height = `${height}%`;
   }
 
   function isNonInputElement() {
@@ -259,10 +379,19 @@
 
   function captureScreenshot() {
     // Use html2canvas to capture the body
-    html2canvas(document.body).then(canvas => {
+    console.log('capturing screenshot...')
+    const options = {
+      // ignore our nav thumbnail and outline 
+      // https://html2canvas.hertzen.com/configuration
+      ignoreElements: (element) => {
+        return element === pageMap || element === overlay;
+      },
+      logging: false,
+    };
+    html2canvas(document.body, options).then(canvas => {
       // Convert the canvas to an image
       const imgData = canvas.toDataURL('image/png');
-      pageMap.src = imgData;
+      pageMapImg.src = imgData;
     }).catch(err => {
       console.error('Error capturing screenshot:', err);
     });

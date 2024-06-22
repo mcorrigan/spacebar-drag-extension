@@ -66,6 +66,12 @@ optionsForm.activatedMouseButton.addEventListener("change", (event) => {
   chrome.storage.sync.set({ options });
 });
 
+// add useNavThumbnail checkbox
+optionsForm.useNavThumbnail.addEventListener("change", (event) => {
+  options.useNavThumbnail = event.target.checked;
+  chrome.storage.sync.set({ options });
+});
+
 optionsForm.closeBtn.addEventListener("click", () => {
   window.close();
 });
@@ -104,6 +110,7 @@ chrome.storage.sync.get("options", (data) => {
   optionsForm.useVelocities.checked = Boolean(options.useVelocities);
   optionsForm.velocityFriction.value = options.velocityFriction;
   optionsForm.activatedMouseButton.value = options.activatedMouseButton;
+  optionsForm.useNavThumbnail.checked = Boolean(options.useNavThumbnail);
 
   // set field to disabled if useVelocities is false
   optionsForm.velocityFriction.disabled = !options.useVelocities;
