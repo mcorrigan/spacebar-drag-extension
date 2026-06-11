@@ -10,7 +10,7 @@ Additional settings allow for choosing which mouse button should do the work, wh
 and styles, and other minor tweaks. 
 
 ### Where to Get It
-It is published on the [Chrome Web Store](https://chromewebstore.google.com/detail/jaccokbdifidliancbiinoccfpilkiea/)
+It is published on the [Chrome Web Store](https://chromewebstore.google.com/detail/jaccokbdifidliancbiinoccfpilkiea/) and on the [Firefox Extensions site](https://addons.mozilla.org/en-US/firefox/addon/spacebar-drag/)
 
 #### Bugs
 Please report bugs and issues here. This is a passive project for fun, so most requests will be second priority to my income generating
