@@ -1,4 +1,5 @@
-This is a quickly built extension for chrome and firefox extension supporting browsers. 
+This is a quickly built extension for browsers that support chrome and firefox extensions, e.g.:
+Chrome, Vivaldi, Brave, Firefox, Librewolf, Zen
 
 ### Why This?
 Several times now I've found myself wishing I had another way to navigate large images and media in my web 
