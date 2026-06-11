@@ -1,4 +1,4 @@
-This is a quickly built extension for Chrome, Brave, Edge, and other chrome extension supporting browsers. 
+This is a quickly built extension for chrome and firefox extension supporting browsers. 
 
 ### Why This?
 Several times now I've found myself wishing I had another way to navigate large images and media in my web 
