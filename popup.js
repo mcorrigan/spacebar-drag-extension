@@ -3,12 +3,12 @@ const optionsForm = document.getElementById("settingsForm");
 
 optionsForm.activeBorder.addEventListener("change", (event) => {
   options.activeBorder = event.target.value;
-  chrome.storage.sync.set({ options });
+  browser.storage.sync.set({ options });
 });
 
 optionsForm.activeBorderThickness.addEventListener("change", (event) => {
   options.activeBorderThickness = parseInt(event.target.value);
-  chrome.storage.sync.set({ options });
+  browser.storage.sync.set({ options });
 });
 
 optionsForm.activeBorderThickness.addEventListener("input", (event) => {
@@ -18,12 +18,12 @@ optionsForm.activeBorderThickness.addEventListener("input", (event) => {
 
 optionsForm.activeBackgroundColor.addEventListener("change", (event) => {
   options.activeBackgroundColor = event.target.value;
-  chrome.storage.sync.set({ options });
+  browser.storage.sync.set({ options });
 });
 
 optionsForm.activeBackgroundOpacity.addEventListener("change", (event) => {
   options.activeBackgroundOpacity = parseFloat(event.target.value);
-  chrome.storage.sync.set({ options });
+  browser.storage.sync.set({ options });
 });
 
 optionsForm.activeBackgroundOpacity.addEventListener("input", (event) => {
@@ -33,25 +33,25 @@ optionsForm.activeBackgroundOpacity.addEventListener("input", (event) => {
 
 optionsForm.invertScroll.addEventListener("change", (event) => {
   options.invertScroll = event.target.checked;
-  chrome.storage.sync.set({ options });
+  browser.storage.sync.set({ options });
 });
 
 optionsForm.displayToolTip.addEventListener("change", (event) => {
   options.displayToolTip = event.target.checked;
-  chrome.storage.sync.set({ options });
+  browser.storage.sync.set({ options });
 });
 
 // add useVelocities checkbox
 optionsForm.useVelocities.addEventListener("change", (event) => {
   options.useVelocities = event.target.checked;
   optionsForm.velocityFriction.disabled = !event.target.checked;
-  chrome.storage.sync.set({ options });
+  browser.storage.sync.set({ options });
 });
 
 // add velocityFriction input
 optionsForm.velocityFriction.addEventListener("change", (event) => {
   options.velocityFriction = parseFloat(event.target.value);
-  chrome.storage.sync.set({ options });
+  browser.storage.sync.set({ options });
 });
 
 optionsForm.velocityFriction.addEventListener("input", (event) => {
@@ -63,7 +63,7 @@ optionsForm.velocityFriction.addEventListener("input", (event) => {
 // add activatedMouseButton input
 optionsForm.activatedMouseButton.addEventListener("change", (event) => {
   options.activatedMouseButton = parseInt(event.target.value);
-  chrome.storage.sync.set({ options });
+  browser.storage.sync.set({ options });
 });
 
 optionsForm.closeBtn.addEventListener("click", () => {
@@ -71,7 +71,7 @@ optionsForm.closeBtn.addEventListener("click", () => {
 });
 
 // inital data load
-chrome.storage.sync.get("options", (data) => {
+browser.storage.sync.get("options", (data) => {
   // get any data currently stored for this extension
   Object.assign(options, data.options);
   options.activeBorder = options.activeBorder || "#008CFF";
@@ -93,7 +93,7 @@ chrome.storage.sync.get("options", (data) => {
   }
 
   // sync anything we may have set defaults for
-  chrome.storage.sync.set({ options });
+  browser.storage.sync.set({ options });
 
   optionsForm.activeBorder.value = options.activeBorder;
   optionsForm.activeBorderThickness.value = options.activeBorderThickness;

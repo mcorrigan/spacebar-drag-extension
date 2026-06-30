@@ -16,14 +16,14 @@
   let friction = 0.9;
 
   // listen for changes to the options
-  chrome.storage.onChanged.addListener((changes, area) => {
+  browser.storage.onChanged.addListener((changes, area) => {
     if (area === "sync" && changes.options?.newValue) {
       updateVariablesFromData(changes.options.newValue);
     }
   });
 
   // default load data
-  chrome.storage.sync.get("options", (data) =>
+  browser.storage.sync.get("options", (data) =>
     updateVariablesFromData(data.options)
   );
 
